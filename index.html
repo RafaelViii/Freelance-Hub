@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreelanceHub — Client Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0f11;--surface:#18181c;--surface2:#222228;
+  --border:#2e2e38;--border2:#3a3a48;--text:#f0f0f4;--muted:#8888a0;
+  --accent:#7c6af7;--accent-light:#a89cf9;--accent-bg:rgba(124,106,247,0.12);
+  --green:#4ade80;--green-bg:rgba(74,222,128,0.1);
+  --red:#f87171;--red-bg:rgba(248,113,113,0.1);
+  --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.1);
+  --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);
+  --radius:10px;--radius-sm:6px;
+  --sidebar-w:240px;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow:hidden;font-size:14px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;transition:transform .25s ease;z-index:100}
+.sidebar-brand{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.brand-name{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.brand-tag{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+.sidebar-close{display:none;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
+.sidebar-section{padding:14px 12px 6px}
+.sidebar-section-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0 8px;margin-bottom:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .15s;margin-bottom:2px;border:1px solid transparent}
+.nav-item:hover{color:var(--text);background:var(--surface2)}
+.nav-item.active{color:var(--accent-light);background:var(--accent-bg);border-color:rgba(124,106,247,0.2)}
+.nav-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sidebar-footer{margin-top:auto;padding:14px;border-top:1px solid var(--border)}
+.sidebar-footer p{font-size:11px;color:var(--muted);line-height:1.6}
+
+/* Mobile overlay */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0}
+.topbar{padding:0 20px;height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surface);gap:8px}
+.topbar-left{display:flex;align-items:center;gap:10px;min-width:0}
+.hamburger{display:none;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;flex-shrink:0;line-height:1;padding:4px}
+.topbar-title{font-size:15px;font-weight:600;white-space:nowrap}
+.topbar-sub{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── Buttons ── */
+.btn{padding:8px 14px;border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid var(--border2);background:var(--surface2);color:var(--text)}
+.btn:hover{background:var(--border)}
+.btn-accent{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-accent:hover{background:var(--accent-light);border-color:var(--accent-light)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--border)}
+.btn-danger{background:var(--red-bg);border-color:rgba(248,113,113,0.3);color:var(--red)}
+.btn-danger:hover{background:rgba(248,113,113,0.2)}
+
+/* ── Metrics ── */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;transition:border-color .15s}
+.metric:hover{border-color:var(--border2)}
+.metric-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px}
+.metric-value{font-size:22px;font-weight:600;font-family:var(--mono);letter-spacing:-1px}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.metric.accent .metric-value{color:var(--accent-light)}
+.metric.green .metric-value{color:var(--green)}
+.metric.red .metric-value{color:var(--red)}
+.metric.amber .metric-value{color:var(--amber)}
+.metric.blue .metric-value{color:var(--blue)}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-header-title{font-size:13px;font-weight:600}
+.card-body{padding:14px 18px}
+
+/* ── Tables ── */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+th{padding:10px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:var(--surface2)}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge-active{background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.badge-hold{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+.badge-done{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.badge-cancelled{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.badge-paid{background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.badge-partial{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+.badge-unpaid{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.badge-high{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.badge-med{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+.badge-low{background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.badge-needed{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.badge-ordered{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+.badge-instock{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(96,165,250,.2)}
+.badge-used{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;animation:modalIn .22s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.modal-head{padding:20px 22px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-head h2{font-size:16px;font-weight:600}
+.modal-body{padding:20px 22px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface)}
+
+/* ── Forms ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-grid.full{grid-template-columns:1fr}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.fg input,.fg select,.fg textarea{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:var(--font);font-size:13px;width:100%;transition:border-color .15s;-webkit-appearance:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent)}
+.fg select{cursor:pointer}
+.fg textarea{resize:vertical;min-height:60px}
+.section-sep{height:1px;background:var(--border);margin:16px 0}
+.section-label-sm{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px}
+
+/* ── Calc strip ── */
+.calc-strip{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-top:2px}
+.calc-item{padding:11px 12px;text-align:center}
+.calc-item+.calc-item{border-left:1px solid var(--border)}
+.calc-item-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:3px}
+.calc-item-value{font-size:15px;font-weight:600;font-family:var(--mono)}
+.calc-item.balance .calc-item-value{color:var(--red)}
+.calc-item.profit .calc-item-value{color:var(--green)}
+
+/* ── Chips ── */
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.chip{padding:4px 10px;border:1px solid var(--border2);border-radius:20px;font-size:12px;cursor:pointer;color:var(--muted);background:var(--surface2);transition:all .15s;white-space:nowrap}
+.chip:hover{background:var(--accent-bg);color:var(--accent-light);border-color:rgba(124,106,247,.3)}
+
+/* ─────────────────────────────────────────────────────
+   PLANNER — Desktop: full week grid
+──────────────────────────────────────────────────── */
+.planner-controls{display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+#week-label{font-size:12px;color:var(--muted);margin-left:4px;font-family:var(--mono)}
+
+/* "Anytime" strip above the timed grid */
+.anytime-strip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;border-bottom:none;overflow:hidden}
+.anytime-strip-head{display:grid;grid-template-columns:64px repeat(7,1fr);background:var(--surface2);border-bottom:1px solid var(--border)}
+.anytime-strip-label{padding:6px 8px;font-size:10px;color:var(--muted);font-family:var(--mono);text-align:right;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;font-weight:600}
+.anytime-col{padding:4px 3px;border-right:1px solid var(--border);min-height:36px;cursor:pointer;transition:background .12s;position:relative}
+.anytime-col:last-child{border-right:none}
+.anytime-col:hover{background:rgba(124,106,247,.07)}
+/* auto-sizing: strip grows to fit tallest column */
+.anytime-strip-body{display:grid;grid-template-columns:64px repeat(7,1fr);align-items:start}
+
+/* Timed week grid */
+.week-grid{display:grid;grid-template-columns:64px repeat(7,1fr);border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);overflow:hidden;font-size:12px;background:var(--surface)}
+.wg-head{padding:8px 4px;background:var(--surface2);text-align:center;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+.wg-head.today-head{color:var(--accent-light);background:var(--accent-bg)}
+.wg-head:last-child{border-right:none}
+.wg-time{padding:0 6px;background:var(--surface2);display:flex;align-items:center;justify-content:flex-end;font-size:10px;color:var(--muted);font-family:var(--mono);border-right:1px solid var(--border);border-bottom:1px solid var(--border);height:44px}
+.wg-cell{padding:2px 3px;height:44px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;overflow:hidden}
+.wg-cell:hover{background:var(--surface2)}
+.wg-cell:last-child{border-right:none}
+
+/* Task pills */
+.task-pill{background:var(--accent-bg);border:1px solid rgba(124,106,247,.25);color:var(--accent-light);border-radius:4px;padding:2px 5px;font-size:10px;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:background .12s;display:block}
+.task-pill:hover{background:rgba(124,106,247,.25)}
+.task-pill.done-pill{background:var(--green-bg);border-color:rgba(74,222,128,.2);color:var(--green);text-decoration:line-through;opacity:.6}
+.task-pill.high-pill{background:var(--red-bg);border-color:rgba(248,113,113,.25);color:var(--red)}
+.task-pill.low-pill{background:var(--green-bg);border-color:rgba(74,222,128,.25);color:var(--green)}
+.task-pill.anytime-pill{font-size:11px;padding:4px 7px;margin-bottom:3px;white-space:normal;word-break:break-word;line-height:1.3}
+
+/* ─────────────────────────────────────────────────────
+   PLANNER — Mobile: day list view
+──────────────────────────────────────────────────── */
+.mobile-day-view{display:none}
+.mobile-day-tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.mobile-day-tabs::-webkit-scrollbar{display:none}
+.day-tab{flex-shrink:0;padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;text-align:center;transition:all .15s;min-width:52px}
+.day-tab.active-tab{background:var(--accent-bg);color:var(--accent-light);border-color:rgba(124,106,247,.3)}
+.day-tab.today-tab{border-color:var(--accent)}
+.mobile-anytime{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px}
+.mobile-anytime-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px}
+.mobile-time-slot{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.mobile-time-slot:last-child{border-bottom:none}
+.mobile-slot-time{font-size:11px;color:var(--muted);font-family:var(--mono);width:40px;flex-shrink:0;padding-top:2px}
+.mobile-slot-tasks{flex:1;display:flex;flex-direction:column;gap:3px}
+.mobile-slot-add{font-size:11px;color:var(--muted);cursor:pointer;padding:3px 0;opacity:.5}
+.mobile-slot-add:hover{opacity:1;color:var(--accent-light)}
+
+/* ── Todo ── */
+.todo-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
+.todo-item:last-child{border-bottom:none}
+.todo-check{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0}
+.todo-text{flex:1;font-size:13px;min-width:0}
+.todo-text.done-text{text-decoration:line-through;color:var(--muted)}
+.todo-meta{font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0}
+
+/* ── Misc ── */
+.empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:13px}
+.empty-icon{font-size:28px;margin-bottom:10px;opacity:.4}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.filter-bar input,.filter-bar select{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 10px;color:var(--text);font-family:var(--font);font-size:13px;transition:border-color .15s;-webkit-appearance:none}
+.filter-bar input{width:200px}
+.filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:var(--accent)}
+.page{display:none}
+.page.active{display:block}
+.deadline-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.deadline-item:last-child{border-bottom:none}
+.dl-name{font-size:13px;font-weight:500}
+.dl-project{font-size:11px;color:var(--muted);margin-top:1px}
+.dl-days{font-size:12px;font-family:var(--mono)}
+.dl-days.urgent{color:var(--red)}
+.dl-days.soon{color:var(--amber)}
+.dl-days.ok{color:var(--muted)}
+
+/* ─────────────────────────────────────────────────────
+   RESPONSIVE — Mobile breakpoints
+──────────────────────────────────────────────────── */
+@media(max-width:768px){
+  body{overflow:auto}
+  .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);height:100%;z-index:100}
+  .sidebar.mobile-open{transform:translateX(0)}
+  .sidebar-overlay.active{display:block}
+  .sidebar-close{display:block}
+  .hamburger{display:block}
+  .main{height:100vh}
+  .content{padding:14px}
+  .topbar{padding:0 14px;height:50px}
+  .topbar-sub{display:none}
+  .two-col{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .week-grid-wrap-desktop{display:none}
+  .anytime-strip{display:none}
+  .mobile-day-view{display:block}
+  .filter-bar input{width:100%}
+  .filter-bar{flex-direction:column;align-items:stretch}
+  .filter-bar select{width:100%}
+  .modal{max-height:88vh}
+  .modal-overlay{padding:16px}
+  .metrics{grid-template-columns:1fr 1fr}
+  .metric-value{font-size:18px}
+  table{min-width:500px}
+}
+@media(max-width:480px){
+  .metrics{grid-template-columns:1fr 1fr}
+  .calc-strip{grid-template-columns:1fr}
+  .calc-item+.calc-item{border-left:none;border-top:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div>
+      <div class="brand-name">FreelanceHub</div>
+      <div class="brand-tag">// your work, organized</div>
+    </div>
+    <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Overview</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">⊞</span> Dashboard</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Work</div>
+    <div class="nav-item" onclick="nav('clients',this)"><span class="nav-icon">◎</span> Clients</div>
+    <div class="nav-item" onclick="nav('planner',this)"><span class="nav-icon">▦</span> Daily Planner</div>
+    <div class="nav-item" onclick="nav('parts',this)"><span class="nav-icon">⊡</span> Parts & Inventory</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Settings</div>
+    <div class="nav-item" onclick="nav('presets',this)"><span class="nav-icon">≡</span> Service Presets</div>
+  </div>
+  <div class="sidebar-footer"><p>Data saved in your browser.<br>Works offline.</p></div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="openSidebar()">☰</button>
+      <div>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-sub" id="topbar-sub"></div>
+      </div>
+    </div>
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </div>
+  <div class="content" id="content-area">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="metrics" id="dash-metrics"></div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-header-title">Recent clients</span></div>
+          <div class="card-body" id="dash-recent"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-header-title">Upcoming deadlines</span></div>
+          <div class="card-body" id="dash-deadlines"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-header"><span class="card-header-title">Today's tasks</span></div>
+        <div class="card-body" id="dash-today"></div>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="page" id="page-clients">
+      <div class="filter-bar">
+        <input placeholder="Search clients..." id="cl-search" oninput="renderClients()">
+        <select id="cl-status" onchange="renderClients()">
+          <option value="">All statuses</option>
+          <option>Active</option><option>On Hold</option><option>Completed</option><option>Cancelled</option>
+        </select>
+        <select id="cl-pay" onchange="renderClients()">
+          <option value="">All payments</option>
+          <option>Unpaid</option><option>Partial</option><option>Paid</option>
+        </select>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Client</th><th>Project</th><th>Status</th><th>Deadline</th><th>Total</th><th>Paid</th><th>Balance</th><th>Payment</th><th>Priority</th><th></th></tr></thead>
+        <tbody id="cl-tbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- PLANNER -->
+    <div class="page" id="page-planner">
+      <div class="planner-controls">
+        <button class="btn btn-sm" onclick="weekOffset(-1)">← Prev</button>
+        <button class="btn btn-sm" onclick="weekOffset(0)">Today</button>
+        <button class="btn btn-sm" onclick="weekOffset(1)">Next →</button>
+        <span id="week-label"></span>
+      </div>
+
+      <!-- Desktop: full week grid -->
+      <div class="week-grid-wrap-desktop" style="margin-bottom:16px">
+        <!-- Anytime strip -->
+        <div class="anytime-strip" id="anytime-strip">
+          <div class="anytime-strip-head" id="anytime-head"></div>
+          <div id="anytime-body" style="display:grid;grid-template-columns:64px repeat(7,1fr);align-items:start">
+            <div style="border-right:1px solid var(--border);padding:6px 8px;display:flex;align-items:flex-start;justify-content:flex-end;min-height:36px">
+              <span style="font-size:9px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;padding-top:2px">anytime</span>
+            </div>
+            <div id="anytime-cols" style="display:contents"></div>
+          </div>
+        </div>
+        <!-- Timed grid -->
+        <div class="week-grid" id="week-grid"></div>
+      </div>
+
+      <!-- Mobile: day-by-day view -->
+      <div class="mobile-day-view">
+        <div class="mobile-day-tabs" id="mobile-day-tabs"></div>
+        <div id="mobile-day-content"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-header-title">Tasks this week</span></div>
+        <div class="card-body" id="planner-task-list"></div>
+      </div>
+    </div>
+
+    <!-- PARTS -->
+    <div class="page" id="page-parts">
+      <div class="metrics" id="parts-metrics"></div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Item</th><th>For client</th><th>Status</th><th>Qty</th><th>Unit cost</th><th>Total</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="parts-tbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- PRESETS -->
+    <div class="page" id="page-presets">
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Service</th><th>Category</th><th>Price</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="presets-tbody"></tbody>
+      </table></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="modal-overlay" id="modal-client">
+<div class="modal">
+  <div class="modal-head"><h2 id="modal-client-title">Add client</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-client')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-grid">
+      <div class="fg"><label>Client name *</label><input id="cm-name" placeholder="e.g. Juan dela Cruz"></div>
+      <div class="fg"><label>Project / service *</label><input id="cm-project" placeholder="e.g. Website redesign"></div>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Status</label><select id="cm-status"><option>Active</option><option>On Hold</option><option>Completed</option><option>Cancelled</option></select></div>
+      <div class="fg"><label>Priority</label><select id="cm-priority"><option>High</option><option>Medium</option><option>Low</option></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Start date</label><input type="date" id="cm-start"></div>
+      <div class="fg"><label>Deadline</label><input type="date" id="cm-deadline"></div>
+    </div>
+    <div class="section-sep"></div>
+    <div class="section-label-sm">Pricing — tap a preset to add to extras</div>
+    <div class="chips" id="preset-chips"></div>
+    <div class="form-grid">
+      <div class="fg"><label>Base cost (₱)</label><input type="number" id="cm-base" placeholder="0" oninput="calcTotal()"></div>
+      <div class="fg"><label>Add-ons / extras (₱)</label><input type="number" id="cm-addons" placeholder="0" oninput="calcTotal()"></div>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Amount paid (₱)</label><input type="number" id="cm-paid" placeholder="0" oninput="calcTotal()"></div>
+      <div class="fg"><label>Materials / parts cost (₱)</label><input type="number" id="cm-parts-cost" placeholder="0" oninput="calcTotal()"></div>
+    </div>
+    <div class="calc-strip">
+      <div class="calc-item"><div class="calc-item-label">Total cost</div><div class="calc-item-value" id="cm-total">₱0</div></div>
+      <div class="calc-item balance"><div class="calc-item-label">Balance due</div><div class="calc-item-value" id="cm-bal">₱0</div></div>
+      <div class="calc-item profit"><div class="calc-item-label">Net profit</div><div class="calc-item-value" id="cm-profit">₱0</div></div>
+    </div>
+    <div class="section-sep"></div>
+    <div class="form-grid full"><div class="fg"><label>Notes</label><textarea id="cm-notes" placeholder="Anything to remember..."></textarea></div></div>
+  </div>
+  <div class="modal-foot"><button class="btn" onclick="closeModal('modal-client')">Cancel</button><button class="btn btn-accent" onclick="saveClient()">Save client</button></div>
+</div></div>
+
+<!-- PART MODAL -->
+<div class="modal-overlay" id="modal-part">
+<div class="modal">
+  <div class="modal-head"><h2>Add part / item</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-part')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-grid full"><div class="fg"><label>Item name *</label><input id="pm-name" placeholder="e.g. HDMI cable, thermal paste..."></div></div>
+    <div class="form-grid">
+      <div class="fg"><label>For client</label><select id="pm-client"><option value="">— General —</option></select></div>
+      <div class="fg"><label>Status</label><select id="pm-status"><option>Needed</option><option>Ordered</option><option>In Stock</option><option>Used</option><option>Returned</option></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Quantity</label><input type="number" id="pm-qty" value="1" min="1" oninput="calcPart()"></div>
+      <div class="fg"><label>Unit cost (₱)</label><input type="number" id="pm-cost" placeholder="0" oninput="calcPart()"></div>
+    </div>
+    <div class="calc-strip" style="margin-bottom:12px;grid-template-columns:1fr">
+      <div class="calc-item"><div class="calc-item-label">Total cost</div><div class="calc-item-value" id="pm-total">₱0</div></div>
+    </div>
+    <div class="form-grid full"><div class="fg"><label>Notes</label><input id="pm-notes" placeholder="Where to buy, link, specs..."></div></div>
+  </div>
+  <div class="modal-foot"><button class="btn" onclick="closeModal('modal-part')">Cancel</button><button class="btn btn-accent" onclick="savePart()">Save</button></div>
+</div></div>
+
+<!-- PRESET MODAL -->
+<div class="modal-overlay" id="modal-preset">
+<div class="modal">
+  <div class="modal-head"><h2>Add service preset</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-preset')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-grid">
+      <div class="fg"><label>Service name *</label><input id="prm-name" placeholder="e.g. Logo Design"></div>
+      <div class="fg"><label>Category</label><input id="prm-cat" placeholder="e.g. Design, Web Dev..."></div>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Standard price (₱)</label><input type="number" id="prm-price" placeholder="0"></div>
+      <div class="fg"><label>Notes</label><input id="prm-notes" placeholder="Optional"></div>
+    </div>
+  </div>
+  <div class="modal-foot"><button class="btn" onclick="closeModal('modal-preset')">Cancel</button><button class="btn btn-accent" onclick="savePreset()">Save preset</button></div>
+</div></div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="modal-task">
+<div class="modal">
+  <div class="modal-head"><h2>Add task</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-task')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-grid full"><div class="fg"><label>Task *</label><input id="tm-task" placeholder="What needs to be done?"></div></div>
+    <div class="form-grid">
+      <div class="fg"><label>For client</label><select id="tm-client"><option value="">— Personal —</option></select></div>
+      <div class="fg"><label>Date</label><input type="date" id="tm-date"></div>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Time slot</label><select id="tm-time"><option value="">Anytime</option></select></div>
+      <div class="fg"><label>Priority</label><select id="tm-priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+    </div>
+  </div>
+  <div class="modal-foot"><button class="btn" onclick="closeModal('modal-task')">Cancel</button><button class="btn btn-accent" onclick="saveTask()">Save task</button></div>
+</div></div>
+
+<script>
+// ── Storage ──────────────────────────────────────────────────────────────────
+const S={g(k){try{return JSON.parse(localStorage.getItem('flh_'+k)||'null')}catch{return null}},s(k,v){localStorage.setItem('flh_'+k,JSON.stringify(v))}};
+let clients=S.g('clients')||[];
+let parts=S.g('parts')||[];
+let presets=S.g('presets')||defaultPresets();
+let tasks=S.g('tasks')||[];
+let editClientId=null;
+let weekOff=0;
+let activeMobileDay=0;
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function save(){S.s('clients',clients);S.s('parts',parts);S.s('presets',presets);S.s('tasks',tasks)}
+
+function defaultPresets(){
+  return[
+    {id:uid(),name:'Logo Design',cat:'Design',price:1500,notes:''},
+    {id:uid(),name:'Landing Page',cat:'Web Dev',price:5000,notes:''},
+    {id:uid(),name:'Full Website',cat:'Web Dev',price:15000,notes:''},
+    {id:uid(),name:'SEO Setup',cat:'Marketing',price:3000,notes:''},
+    {id:uid(),name:'Social Media Kit',cat:'Design',price:2500,notes:''},
+    {id:uid(),name:'Monthly Retainer',cat:'Maintenance',price:4000,notes:''},
+    {id:uid(),name:'Bug Fix',cat:'Support',price:500,notes:'Per issue'},
+    {id:uid(),name:'Content Writing',cat:'Content',price:300,notes:'Per page'},
+    {id:uid(),name:'Video Editing',cat:'Media',price:200,notes:'Per min'},
+    {id:uid(),name:'Rush Fee',cat:'Add-on',price:1500,notes:''},
+    {id:uid(),name:'Consultation',cat:'Consultation',price:1000,notes:'Per hr'},
+  ]
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const p=n=>'₱'+Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0});
+const dLeft=d=>d?Math.ceil((new Date(d)-new Date())/864e5):null;
+const fmtD=d=>{if(!d)return'—';const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'2-digit'})};
+const payS=c=>{const t=(+(c.base||0))+(+(c.addons||0));const pd=+(c.paid||0);if(!t)return'Unpaid';if(pd>=t)return'Paid';if(pd>0)return'Partial';return'Unpaid'};
+const badge=(cls,txt)=>`<span class="badge badge-${cls}">${txt}</span>`;
+const statusBadge=s=>badge({Active:'active','On Hold':'hold',Completed:'done',Cancelled:'cancelled'}[s]||'done',s);
+const payBadge=s=>badge({Paid:'paid',Partial:'partial',Unpaid:'unpaid'}[s]||'unpaid',s);
+const prioBadge=p2=>badge({High:'high',Medium:'med',Low:'low'}[p2]||'med',p2);
+const pillClass=t=>t.done?'done-pill':t.priority==='High'?'high-pill':t.priority==='Low'?'low-pill':'';
+
+// ── Sidebar mobile ───────────────────────────────────────────────────────────
+function openSidebar(){document.getElementById('sidebar').classList.add('mobile-open');document.getElementById('sidebar-overlay').classList.add('active')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('mobile-open');document.getElementById('sidebar-overlay').classList.remove('active')}
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+const pageNames={dashboard:'Dashboard',clients:'Clients',planner:'Daily Planner',parts:'Parts & Inventory',presets:'Service Presets'};
+function nav(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('topbar-title').textContent=pageNames[id];
+  const subs={dashboard:new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),clients:'Track projects, costs & payments',planner:'Plan your week',parts:'What you bought and need',presets:'Your reusable service catalog'};
+  document.getElementById('topbar-sub').textContent=subs[id]||'';
+  const actions={clients:`<button class="btn btn-accent" onclick="openClientModal()">+ Add client</button>`,planner:`<button class="btn btn-accent" onclick="openTaskModal()">+ Add task</button>`,parts:`<button class="btn btn-accent" onclick="openPartModal()">+ Add part</button>`,presets:`<button class="btn btn-accent" onclick="openPresetModal()">+ Add preset</button>`};
+  document.getElementById('topbar-actions').innerHTML=actions[id]||'';
+  ({dashboard:renderDashboard,clients:renderClients,planner:renderPlanner,parts:renderParts,presets:renderPresets})[id]?.();
+  closeSidebar();
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
+function renderDashboard(){
+  const total=clients.reduce((s,c)=>s+(+(c.base||0))+(+(c.addons||0)),0);
+  const paid=clients.reduce((s,c)=>s+(+(c.paid||0)),0);
+  const bal=clients.reduce((s,c)=>s+Math.max(0,(+(c.base||0))+(+(c.addons||0))-(+(c.paid||0))),0);
+  const active=clients.filter(c=>c.status==='Active').length;
+  document.getElementById('dash-metrics').innerHTML=`
+    <div class="metric accent"><div class="metric-label">Active clients</div><div class="metric-value">${active}</div><div class="metric-sub">${clients.length} total</div></div>
+    <div class="metric"><div class="metric-label">Total revenue</div><div class="metric-value">${p(total)}</div></div>
+    <div class="metric green"><div class="metric-label">Total paid</div><div class="metric-value">${p(paid)}</div></div>
+    <div class="metric red"><div class="metric-label">Balance due</div><div class="metric-value">${p(bal)}</div></div>
+  `;
+  const recent=[...clients].reverse().slice(0,5);
+  document.getElementById('dash-recent').innerHTML=recent.length?recent.map(c=>`<div class="deadline-item"><div><div class="dl-name">${c.name}</div><div class="dl-project">${c.project}</div></div>${statusBadge(c.status)}</div>`).join(''):`<div class="empty"><div class="empty-icon">◎</div>No clients yet</div>`;
+  const upcoming=clients.filter(c=>c.deadline&&dLeft(c.deadline)>=0&&dLeft(c.deadline)<=14).sort((a,b)=>new Date(a.deadline)-new Date(b.deadline)).slice(0,5);
+  document.getElementById('dash-deadlines').innerHTML=upcoming.length?upcoming.map(c=>{const d=dLeft(c.deadline);return`<div class="deadline-item"><div><div class="dl-name">${c.name}</div><div class="dl-project">${c.project}</div></div><span class="dl-days ${d<=2?'urgent':d<=5?'soon':'ok'}">${d===0?'Today':d===1?'Tomorrow':d+'d left'}</span></div>`}).join(''):`<div class="empty">No deadlines in 2 weeks</div>`;
+  const todayStr=new Date().toISOString().slice(0,10);
+  const todayTasks=tasks.filter(t=>t.date===todayStr);
+  document.getElementById('dash-today').innerHTML=todayTasks.length?todayTasks.map(t=>`<div class="todo-item"><input type="checkbox" class="todo-check" ${t.done?'checked':''} onchange="toggleTask('${t.id}',true)"><span class="todo-text ${t.done?'done-text':''}">${t.task}${t.clientId?` <span style="color:var(--muted);font-size:11px">· ${(clients.find(c=>c.id===t.clientId)||{name:''}).name}</span>`:''}</span>${prioBadge(t.priority||'Medium')}</div>`).join(''):`<div class="empty">No tasks today. Add them in Daily Planner.</div>`;
+}
+
+// ── Clients ──────────────────────────────────────────────────────────────────
+function renderClients(){
+  const q=(document.getElementById('cl-search')||{value:''}).value.toLowerCase();
+  const sf=(document.getElementById('cl-status')||{value:''}).value;
+  const pf=(document.getElementById('cl-pay')||{value:''}).value;
+  const list=clients.filter(c=>{
+    if(q&&!c.name.toLowerCase().includes(q)&&!c.project.toLowerCase().includes(q))return false;
+    if(sf&&c.status!==sf)return false;
+    if(pf&&payS(c)!==pf)return false;
+    return true;
+  });
+  const tb=document.getElementById('cl-tbody');if(!tb)return;
+  if(!list.length){tb.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="empty-icon">◎</div>No clients found.</div></td></tr>`;return}
+  tb.innerHTML=list.map(c=>{
+    const tot=(+(c.base||0))+(+(c.addons||0));
+    const bal2=Math.max(0,tot-(+(c.paid||0)));
+    const d=c.deadline?dLeft(c.deadline):null;
+    const dStr=c.deadline?`<span style="font-family:var(--mono);font-size:12px;color:${d!==null&&d<=3?'var(--red)':d!==null&&d<=7?'var(--amber)':'var(--muted)'}">${fmtD(c.deadline)}${d!==null?` (${d}d)`:''}</span>`:'—';
+    return`<tr><td><div style="font-weight:500">${c.name}</div>${c.notes?`<div style="font-size:11px;color:var(--muted)">${c.notes.slice(0,28)}${c.notes.length>28?'…':''}</div>`:''}</td><td>${c.project}</td><td>${statusBadge(c.status)}</td><td>${dStr}</td><td style="font-family:var(--mono)">${p(tot)}</td><td style="font-family:var(--mono)">${p(c.paid||0)}</td><td style="font-family:var(--mono);color:${bal2>0?'var(--red)':'var(--green)'};font-weight:${bal2>0?600:400}">${p(bal2)}</td><td>${payBadge(payS(c))}</td><td>${prioBadge(c.priority||'Medium')}</td><td style="white-space:nowrap"><button class="btn btn-sm btn-ghost" onclick="openClientModal('${c.id}')">Edit</button> <button class="btn btn-sm btn-danger" onclick="delClient('${c.id}')">Del</button></td></tr>`;
+  }).join('');
+}
+
+function openClientModal(id){
+  editClientId=id||null;
+  const c=id?clients.find(x=>x.id===id):null;
+  document.getElementById('modal-client-title').textContent=id?'Edit client':'Add client';
+  ['name','project','start','deadline','notes'].forEach(f=>document.getElementById('cm-'+f).value=c?.[f]||'');
+  document.getElementById('cm-status').value=c?.status||'Active';
+  document.getElementById('cm-priority').value=c?.priority||'Medium';
+  document.getElementById('cm-base').value=c?.base||'';
+  document.getElementById('cm-addons').value=c?.addons||'';
+  document.getElementById('cm-paid').value=c?.paid||'';
+  document.getElementById('cm-parts-cost').value=c?.partsCost||'';
+  document.getElementById('preset-chips').innerHTML=presets.map(pr=>`<div class="chip" onclick="applyPreset(${pr.price})">${pr.name} ${p(pr.price)}</div>`).join('');
+  calcTotal();
+  document.getElementById('modal-client').classList.add('open');
+}
+
+function applyPreset(price){document.getElementById('cm-addons').value=+(document.getElementById('cm-addons').value||0)+price;calcTotal()}
+
+function calcTotal(){
+  const base=+(document.getElementById('cm-base').value||0);
+  const addons=+(document.getElementById('cm-addons').value||0);
+  const paid2=+(document.getElementById('cm-paid').value||0);
+  const parts2=+(document.getElementById('cm-parts-cost').value||0);
+  const tot=base+addons;
+  document.getElementById('cm-total').textContent=p(tot);
+  document.getElementById('cm-bal').textContent=p(Math.max(0,tot-paid2));
+  document.getElementById('cm-profit').textContent=p(tot-parts2);
+}
+
+function saveClient(){
+  const name=document.getElementById('cm-name').value.trim();
+  const project=document.getElementById('cm-project').value.trim();
+  if(!name||!project){alert('Client name and project are required.');return}
+  const data={id:editClientId||uid(),name,project,status:document.getElementById('cm-status').value,priority:document.getElementById('cm-priority').value,start:document.getElementById('cm-start').value,deadline:document.getElementById('cm-deadline').value,base:document.getElementById('cm-base').value,addons:document.getElementById('cm-addons').value,paid:document.getElementById('cm-paid').value,partsCost:document.getElementById('cm-parts-cost').value,notes:document.getElementById('cm-notes').value};
+  if(editClientId){const i=clients.findIndex(c=>c.id===editClientId);if(i>=0)clients[i]=data}else clients.push(data);
+  save();closeModal('modal-client');renderClients();
+}
+
+function delClient(id){if(confirm('Delete this client?')){clients=clients.filter(c=>c.id!==id);save();renderClients()}}
+
+// ── Planner ──────────────────────────────────────────────────────────────────
+const HOURS=Array.from({length:14},(_,i)=>`${(i+7).toString().padStart(2,'0')}:00`);
+const DAY_NAMES=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+function getWeekDays(){
+  const now=new Date();const mon=new Date(now);
+  mon.setDate(now.getDate()-((now.getDay()||7)-1)+weekOff*7);
+  return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d});
+}
+
+function weekOffset(dir){if(dir===0)weekOff=0;else weekOff+=dir;activeMobileDay=0;renderPlanner()}
+
+function taskPillHTML(t,extra=''){
+  return`<div class="task-pill ${pillClass(t)} ${extra}" onclick="event.stopPropagation();toggleTask('${t.id}')" title="${t.task}">${t.task.slice(0,18)}${t.task.length>18?'…':''}</div>`;
+}
+
+function renderPlanner(){
+  const days=getWeekDays();
+  document.getElementById('week-label').textContent=`${fmtD(days[0].toISOString().slice(0,10))} – ${fmtD(days[6].toISOString().slice(0,10))}`;
+
+  // ── Desktop week grid ──
+  buildDesktopGrid(days);
+
+  // ── Mobile day view ──
+  buildMobileView(days);
+
+  // ── Task list below ──
+  renderWeekTaskList(days);
+}
+
+function buildDesktopGrid(days){
+  // Header row (inside anytime strip)
+  let headHTML='<div style="border-right:1px solid var(--border);background:var(--surface2)"></div>';
+  days.forEach((d,i)=>{
+    const isT=d.toDateString()===new Date().toDateString();
+    headHTML+=`<div style="padding:7px 4px;text-align:center;font-size:11px;font-weight:600;color:${isT?'var(--accent-light)':'var(--muted)'};background:${isT?'var(--accent-bg)':'var(--surface2)'};border-right:1px solid var(--border)">${DAY_NAMES[i]}<br><span style="font-size:13px;font-weight:400">${d.getDate()}</span></div>`;
+  });
+  document.getElementById('anytime-head').innerHTML=headHTML;
+
+  // Anytime columns — auto-sizing blocks, one per task
+  let anyHTML='';
+  days.forEach(d=>{
+    const ds=d.toISOString().slice(0,10);
+    const anyTasks=tasks.filter(t=>t.date===ds&&!t.time);
+    anyHTML+=`<div class="anytime-col" onclick="openTaskModal('${ds}','')">`;
+    if(anyTasks.length){
+      anyTasks.forEach(t=>{
+        const pillCls=t.done?'done-pill':(t.priority==='High'?'high-pill':t.priority==='Low'?'low-pill':'');
+        anyHTML+=`<div class="task-pill anytime-pill ${pillCls}" onclick="event.stopPropagation();toggleTask('${t.id}')" title="${t.task}: click to toggle done">${t.done?'✓ ':''} ${t.task.slice(0,22)}${t.task.length>22?'…':''}</div>`;
+      });
+    } else {
+      anyHTML+=`<div style="height:28px;display:flex;align-items:center;padding:0 3px"><span style="font-size:10px;color:var(--border2)">+ tap to add</span></div>`;
+    }
+    anyHTML+=`</div>`;
+  });
+  document.getElementById('anytime-cols').innerHTML=anyHTML;
+
+  // Timed grid
+  let gridHTML='';
+  // Header row for timed grid (repeats day names above hours)
+  gridHTML+='<div class="wg-head" style="border-bottom:1px solid var(--border)"></div>';
+  days.forEach((d,i)=>{
+    const isT=d.toDateString()===new Date().toDateString();
+    gridHTML+=`<div class="wg-head ${isT?'today-head':''}">${DAY_NAMES[i]} <span style="font-weight:400">${d.getDate()}</span></div>`;
+  });
+  HOURS.forEach(hr=>{
+    gridHTML+=`<div class="wg-time">${hr}</div>`;
+    days.forEach(d=>{
+      const ds=d.toISOString().slice(0,10);
+      const slotTasks=tasks.filter(t=>t.date===ds&&t.time===hr);
+      gridHTML+=`<div class="wg-cell" onclick="openTaskModal('${ds}','${hr}')">`;
+      slotTasks.forEach(t=>{gridHTML+=taskPillHTML(t)});
+      gridHTML+=`</div>`;
+    });
+  });
+  document.getElementById('week-grid').innerHTML=gridHTML;
+}
+
+function buildMobileView(days){
+  const today=new Date().toDateString();
+  // Day tabs
+  let tabsHTML='';
+  days.forEach((d,i)=>{
+    const isT=d.toDateString()===today;
+    const ds=d.toISOString().slice(0,10);
+    const dayTaskCount=tasks.filter(t=>t.date===ds).length;
+    tabsHTML+=`<div class="day-tab ${i===activeMobileDay?'active-tab':''} ${isT?'today-tab':''}" onclick="setMobileDay(${i})">${DAY_NAMES[i]}<br><span style="font-size:13px">${d.getDate()}</span>${dayTaskCount?`<br><span style="font-size:9px;color:var(--accent-light)">${dayTaskCount}</span>`:''}  </div>`;
+  });
+  document.getElementById('mobile-day-tabs').innerHTML=tabsHTML;
+
+  // Day content
+  const activeDay=days[activeMobileDay];
+  const ds=activeDay.toISOString().slice(0,10);
+  const anyTasks=tasks.filter(t=>t.date===ds&&!t.time);
+
+  let contentHTML='';
+  // Anytime section
+  contentHTML+=`<div class="mobile-anytime"><div class="mobile-anytime-label">Anytime <span style="color:var(--accent-light);cursor:pointer;font-size:11px;font-weight:400;text-transform:none;letter-spacing:0" onclick="openTaskModal('${ds}','')">+ add</span></div>`;
+  if(anyTasks.length){
+    anyTasks.forEach(t=>{
+      const pillCls=t.done?'done-pill':(t.priority==='High'?'high-pill':t.priority==='Low'?'low-pill':'');
+      contentHTML+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+        <input type="checkbox" class="todo-check" ${t.done?'checked':''} onchange="toggleTask('${t.id}')">
+        <span style="flex:1;font-size:13px;${t.done?'text-decoration:line-through;color:var(--muted)':''}">${t.task}</span>
+        <span class="badge badge-${t.priority==='High'?'high':t.priority==='Low'?'low':'med'}" style="font-size:10px">${t.priority}</span>
+        <button class="btn btn-sm btn-danger" style="padding:2px 7px;font-size:11px" onclick="delTask('${t.id}')">✕</button>
+      </div>`;
+    });
+  } else {
+    contentHTML+=`<div style="font-size:12px;color:var(--muted);padding:6px 0;text-align:center;border:1px dashed var(--border);border-radius:var(--radius-sm);cursor:pointer" onclick="openTaskModal('${ds}','')">No anytime tasks — tap to add</div>`;
+  }
+  contentHTML+=`</div>`;
+
+  // Time slots
+  contentHTML+=`<div class="card">`;
+  HOURS.forEach(hr=>{
+    const slotTasks=tasks.filter(t=>t.date===ds&&t.time===hr);
+    contentHTML+=`<div class="mobile-time-slot">
+      <div class="mobile-slot-time">${hr}</div>
+      <div class="mobile-slot-tasks">`;
+    if(slotTasks.length){
+      slotTasks.forEach(t=>{
+        contentHTML+=`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
+          <input type="checkbox" class="todo-check" ${t.done?'checked':''} onchange="toggleTask('${t.id}')">
+          <span style="font-size:12px;flex:1;${t.done?'text-decoration:line-through;color:var(--muted)':''}">${t.task}</span>
+          <button class="btn btn-sm btn-danger" style="padding:2px 6px" onclick="delTask('${t.id}')">✕</button>
+        </div>`;
+      });
+    }
+    contentHTML+=`<div class="mobile-slot-add" onclick="openTaskModal('${ds}','${hr}')">+ add</div>`;
+    contentHTML+=`</div></div>`;
+  });
+  contentHTML+=`</div>`;
+  document.getElementById('mobile-day-content').innerHTML=contentHTML;
+}
+
+function setMobileDay(idx){activeMobileDay=idx;renderPlanner()}
+
+function renderWeekTaskList(days){
+  const wd=days.map(d=>d.toISOString().slice(0,10));
+  const wt=tasks.filter(t=>wd.includes(t.date));
+  document.getElementById('planner-task-list').innerHTML=wt.length?wt.map(t=>`
+    <div class="todo-item">
+      <input type="checkbox" class="todo-check" ${t.done?'checked':''} onchange="toggleTask('${t.id}')">
+      <span class="todo-text ${t.done?'done-text':''}">${t.task}</span>
+      <span class="todo-meta">${fmtD(t.date)}${t.time?' '+t.time:' · Anytime'}</span>
+      ${prioBadge(t.priority||'Medium')}
+      <button class="btn btn-sm btn-danger" onclick="delTask('${t.id}')">Del</button>
+    </div>`).join(''):`<div class="empty">No tasks this week. Tap any time slot to add one.</div>`;
+}
+
+function openTaskModal(date,time){
+  const ts=document.getElementById('tm-time');
+  ts.innerHTML='<option value="">Anytime</option>'+HOURS.map(h=>`<option value="${h}">${h}</option>`).join('');
+  document.getElementById('tm-task').value='';
+  document.getElementById('tm-date').value=date||new Date().toISOString().slice(0,10);
+  if(time!==undefined)ts.value=time;
+  document.getElementById('tm-priority').value='Medium';
+  document.getElementById('tm-client').innerHTML='<option value="">— Personal —</option>'+clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('modal-task').classList.add('open');
+}
+
+function saveTask(){
+  const task=document.getElementById('tm-task').value.trim();
+  if(!task){alert('Task is required.');return}
+  tasks.push({id:uid(),task,clientId:document.getElementById('tm-client').value,date:document.getElementById('tm-date').value,time:document.getElementById('tm-time').value,priority:document.getElementById('tm-priority').value,done:false});
+  save();closeModal('modal-task');renderPlanner();
+}
+
+function toggleTask(id,dash){
+  const t=tasks.find(x=>x.id===id);if(t){t.done=!t.done;save();}
+  if(dash)renderDashboard();
+  else if(document.getElementById('page-planner').classList.contains('active'))renderPlanner();
+}
+
+function delTask(id){tasks=tasks.filter(t=>t.id!==id);save();renderPlanner()}
+
+// ── Parts ────────────────────────────────────────────────────────────────────
+function renderParts(){
+  const spent=parts.filter(x=>x.status!=='Needed').reduce((s,x)=>s+(+(x.qty||1))*(+(x.cost||0)),0);
+  const needed=parts.filter(x=>x.status==='Needed').length;
+  const ordered=parts.filter(x=>x.status==='Ordered').length;
+  document.getElementById('parts-metrics').innerHTML=`
+    <div class="metric amber"><div class="metric-label">Total spent</div><div class="metric-value">${p(spent)}</div></div>
+    <div class="metric red"><div class="metric-label">Items needed</div><div class="metric-value">${needed}</div></div>
+    <div class="metric blue"><div class="metric-label">Ordered</div><div class="metric-value">${ordered}</div></div>
+    <div class="metric"><div class="metric-label">Total items</div><div class="metric-value">${parts.length}</div></div>
+  `;
+  const tb=document.getElementById('parts-tbody');if(!tb)return;
+  if(!parts.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-icon">⊡</div>No parts tracked yet.</div></td></tr>`;return}
+  const stB={Needed:'needed',Ordered:'ordered','In Stock':'instock',Used:'used',Returned:'done'};
+  tb.innerHTML=parts.map(x=>{
+    const cl=clients.find(c=>c.id===x.clientId);
+    return`<tr><td style="font-weight:500">${x.name}</td><td>${cl?cl.name:'—'}</td><td>${badge(stB[x.status]||'done',x.status)}</td><td style="font-family:var(--mono)">${x.qty||1}</td><td style="font-family:var(--mono)">${p(x.cost||0)}</td><td style="font-family:var(--mono);font-weight:500">${p((+(x.qty||1))*(+(x.cost||0)))}</td><td style="font-size:12px;color:var(--muted)">${x.notes||'—'}</td><td><button class="btn btn-sm btn-danger" onclick="delPart('${x.id}')">Del</button></td></tr>`;
+  }).join('');
+}
+
+function openPartModal(){
+  ['name','notes'].forEach(f=>document.getElementById('pm-'+f).value='');
+  document.getElementById('pm-qty').value=1;document.getElementById('pm-cost').value='';
+  document.getElementById('pm-status').value='Needed';
+  document.getElementById('pm-client').innerHTML='<option value="">— General —</option>'+clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  calcPart();document.getElementById('modal-part').classList.add('open');
+}
+
+function calcPart(){document.getElementById('pm-total').textContent=p((+(document.getElementById('pm-qty').value||1))*(+(document.getElementById('pm-cost').value||0)))}
+
+function savePart(){
+  const name=document.getElementById('pm-name').value.trim();
+  if(!name){alert('Item name required.');return}
+  parts.push({id:uid(),name,clientId:document.getElementById('pm-client').value,status:document.getElementById('pm-status').value,qty:document.getElementById('pm-qty').value,cost:document.getElementById('pm-cost').value,notes:document.getElementById('pm-notes').value});
+  save();closeModal('modal-part');renderParts();
+}
+
+function delPart(id){if(confirm('Delete?')){parts=parts.filter(x=>x.id!==id);save();renderParts()}}
+
+// ── Presets ──────────────────────────────────────────────────────────────────
+function renderPresets(){
+  const tb=document.getElementById('presets-tbody');if(!tb)return;
+  if(!presets.length){tb.innerHTML=`<tr><td colspan="5"><div class="empty">No presets yet.</div></td></tr>`;return}
+  tb.innerHTML=presets.map(pr=>`<tr><td style="font-weight:500">${pr.name}</td><td><span class="badge badge-done">${pr.cat||'—'}</span></td><td style="font-family:var(--mono);font-weight:500">${p(pr.price)}</td><td style="font-size:12px;color:var(--muted)">${pr.notes||'—'}</td><td><button class="btn btn-sm btn-danger" onclick="delPreset('${pr.id}')">Del</button></td></tr>`).join('');
+}
+
+function openPresetModal(){
+  ['name','cat','notes'].forEach(f=>document.getElementById('prm-'+f).value='');
+  document.getElementById('prm-price').value='';
+  document.getElementById('modal-preset').classList.add('open');
+}
+
+function savePreset(){
+  const name=document.getElementById('prm-name').value.trim();
+  if(!name){alert('Service name required.');return}
+  presets.push({id:uid(),name,cat:document.getElementById('prm-cat').value,price:+(document.getElementById('prm-price').value||0),notes:document.getElementById('prm-notes').value});
+  save();closeModal('modal-preset');renderPresets();
+}
+
+function delPreset(id){if(confirm('Delete preset?')){presets=presets.filter(x=>x.id!==id);save();renderPresets()}}
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+document.getElementById('topbar-sub').textContent=new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+renderDashboard();
+</script>
+</body>
+</html>
